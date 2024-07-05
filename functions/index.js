@@ -45,7 +45,8 @@ async function generateParkCarAppMenu(documentID) {
             'status': 0,
             'seq': 10,
             'subject': "ตั้งค่าโครงการ",
-            'path_name': "SettingProjectPage"
+            'path_name': "SettingProjectPage",
+            'type': "app"
         }
     );
 
@@ -54,7 +55,8 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 20,
             'subject': "ตั้งค่าเครื่องพิมพ์",
-            'path_name': "SettingPrinterPage"
+            'path_name': "SettingPrinterPage",
+            'type': "app"
         }
     );
 
@@ -63,7 +65,8 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 30,
             'subject': "ตั้งค่าอื่นๆ",
-            'path_name': "SettingGeneralPage"
+            'path_name': "SettingGeneralPage",
+            'type': "app"
         }
     );
 
@@ -72,7 +75,17 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 40,
             'subject': "แจ้งปัญหาการใช้งาน",
-            'path_name': "IssuePage"
+            'path_name': "IssuePage",
+            'type': "app"
+        }
+    );
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 50,
+            'subject': "คู่มือการใช้งาน",
+            'path_name': "https://silver-api.com/smart-product/guide/index.html",
+            'type': "web"
         }
     );
 }
