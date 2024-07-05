@@ -42,7 +42,7 @@ exports.onCreateProject = functions.firestore.document('project_list/{doc_id}')
 async function generateParkCarAppMenu(documentID) {
     await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
         {
-            'status': 1,
+            'status': 0,
             'seq': 10,
             'subject': "ตั้งค่าโครงการ",
             'path_name': "SettingProjectPage"
@@ -51,7 +51,7 @@ async function generateParkCarAppMenu(documentID) {
 
     await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
         {
-            'status': 0,
+            'status': 1,
             'seq': 20,
             'subject': "ตั้งค่าเครื่องพิมพ์",
             'path_name': "SettingPrinterPage"
