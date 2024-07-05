@@ -31,25 +31,83 @@ exports.onCreateProject = functions.firestore.document('project_list/{doc_id}')
         const original = snap.data();
         const documentID = context.params.doc_id;
 
-        await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
-            {
-                'status': 1,
-                'seq': 10,
-                'subject': "Dash board",
-                'path_name': "DashboardPage",
-                'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/dashboard.png"
-            }
-        );
+        await generateParkCarAppMenu(documentID);
+        await generateBehindMenu(documentID);
 
-        await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
-            {
-                'status': 1,
-                'seq': 20,
-                'subject': "ข้อมูล รถเข้า-ออก",
-                'path_name': "ParkPage",
-                'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/carpark.png"
-            }
-        );
+
 
         console.log('createProvince done');
     });
+
+async function generateParkCarAppMenu(documentID) {
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 10,
+            'subject': "ตั้งค่าโครงการ",
+            'path_name': "SettingProjectPage"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 20,
+            'subject': "ตั้งค่าเครื่องพิมพ์",
+            'path_name': "SettingPrinterPage"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 30,
+            'subject': "ตั้งค่าอื่นๆ",
+            'path_name': "SettingGeneralPage"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 40,
+            'subject': "แจ้งปัญหาการใช้งาน",
+            'path_name': "IssuePage"
+        }
+    );
+}
+
+async function generateBehindMenu(documentID) {
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 10,
+            'subject': "Dash board",
+            'path_name': "DashboardPage",
+            'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/dashboard.png"
+        }
+    );
+
+    const parkMenuRef = db.collection('project_list/' + documentID + '/behind_menu_list').doc();
+    await parkMenuRef.set(
+        {
+            'status': 1,
+            'seq': 20,
+            'subject': "ข้อมูล รถเข้า-ออก",
+            'path_name': "ParkPage",
+            'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/carpark.png"
+        }
+    );
+    generateBehindSubMenu('project_list/' + documentID + '/behind_menu_list/' + parkMenuRef.id + "/sub_menu_list");
+}
+
+async function generateBehindSubMenu(path) {
+    await db.collection(path).doc().set(
+        {
+            'status': 1,
+            'seq': 10,
+            'subject': "ตั้งค่าระบบ 'บันทึกจอดรถ'",
+            'path_name': "ParkSettingPage"
+        }
+    );
+}
