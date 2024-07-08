@@ -84,7 +84,7 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 50,
             'subject': "คู่มือการใช้งาน",
-            'path_name': "https://silver-api.com/smart-product/guide/index.html",
+            'path_name': "", //path_name ในแอปเช็ตแยกไว้ให้ดึงจาก config ของแอป นั้นๆ
             'type': "web"
         }
     );
