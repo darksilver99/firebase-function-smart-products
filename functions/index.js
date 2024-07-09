@@ -102,7 +102,7 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 60,
             'subject': "คู่มือการใช้งาน",
-            'path_name': rsConfig.data()["guide_url"],
+            'path_name': rsConfig.data()["guide_image_path"],
             'type': "app_image"
         }
     );
@@ -115,8 +115,7 @@ async function generateBehindMenu(documentID) {
             'seq': 10,
             'subject': "Dash board",
             'path_name': "DashboardPage",
-            'type': "app",
-            'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/dashboard.png"
+            'type': "app"
         }
     );
 
@@ -127,11 +126,20 @@ async function generateBehindMenu(documentID) {
             'seq': 20,
             'subject': "ข้อมูล รถเข้า-ออก",
             'path_name': "ParkPage",
-            'type': "app",
-            'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/carpark.png"
+            'type': "app"
         }
     );
     generateBehindSubMenu('project_list/' + documentID + '/behind_menu_list/' + parkMenuRef.id + "/sub_menu_list");
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 30,
+            'subject': "ต่ออายุการใช้งาน",
+            'path_name': "PaymentAlertPage",
+            'type': "app"
+        }
+    );
 }
 
 async function generateBehindSubMenu(path) {
@@ -150,18 +158,9 @@ async function generateBehindSubMenu(path) {
     await db.collection(path).doc().set(
         {
             'status': 1,
-            'seq': 20,
-            'subject': "ต่ออายุการใช้งาน",
-            'path_name': "PaymentAlertPage",
-            'type': "app",
-        }
-    );
-    await db.collection(path).doc().set(
-        {
-            'status': 1,
             'seq': 30,
             'subject': "คู่มือการใช้งานระบบ 'บันทึกจอดรถ'",
-            'path_name': rsConfig.data()["guide_url"],
+            'path_name': rsConfig.data()["guide_image_path"],
             'type': "app_image",
         }
     );
