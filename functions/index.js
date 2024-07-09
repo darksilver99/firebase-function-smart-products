@@ -103,7 +103,7 @@ async function generateParkCarAppMenu(documentID) {
             'seq': 60,
             'subject': "คู่มือการใช้งาน",
             'path_name': rsConfig.data()["guide_url"],
-            'type': "guide"
+            'type': "app_image"
         }
     );
 }
