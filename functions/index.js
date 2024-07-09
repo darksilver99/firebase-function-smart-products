@@ -79,13 +79,24 @@ async function generateParkCarAppMenu(documentID) {
             'type': "app"
         }
     );
+
     await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
         {
             'status': 1,
             'seq': 50,
+            'subject': "ต่ออายุการใช้งาน",
+            'path_name': "PaymentAlertPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 60,
             'subject': "คู่มือการใช้งาน",
-            'path_name': "", //path_name ในแอปเช็ตแยกไว้ให้ดึงจาก config ของแอป นั้นๆ
-            'type': "web"
+            'path_name': "DetailWithImagePage",
+            'type': "app"
         }
     );
 }
@@ -121,6 +132,14 @@ async function generateBehindSubMenu(path) {
             'seq': 10,
             'subject': "ตั้งค่าระบบ 'บันทึกจอดรถ'",
             'path_name': "ParkSettingPage"
+        }
+    );
+    await db.collection(path).doc().set(
+        {
+            'status': 1,
+            'seq': 20,
+            'subject': "ต่ออายุการใช้งาน",
+            'path_name': "PaymentAlertPage"
         }
     );
 }
