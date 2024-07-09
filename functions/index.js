@@ -35,11 +35,18 @@ exports.onCreateProject = functions.firestore.document('project_list/{doc_id}')
         await generateBehindMenu(documentID);
 
 
-
         console.log('createProvince done');
     });
 
 async function generateParkCarAppMenu(documentID) {
+
+    // type app เปิดในแอป path คือชื่อ route
+    // type web เปิดในแอปหน้า web view "path_name" คือ url
+    // type app_image เปิดในแอปหน้า DetailWithImagePage "path_name" คือ url รูป
+    // type url เปิดลิงก์นอก
+
+    var rsConfig = await db.doc("config/park_car_app").get();
+
     await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
         {
             'status': 0,
@@ -95,7 +102,7 @@ async function generateParkCarAppMenu(documentID) {
             'status': 1,
             'seq': 60,
             'subject': "คู่มือการใช้งาน",
-            'path_name': "DetailWithImagePage",
+            'path_name': rsConfig.data()["guide_url"],
             'type': "guide"
         }
     );
@@ -108,6 +115,7 @@ async function generateBehindMenu(documentID) {
             'seq': 10,
             'subject': "Dash board",
             'path_name': "DashboardPage",
+            'type': "app",
             'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/dashboard.png"
         }
     );
@@ -119,6 +127,7 @@ async function generateBehindMenu(documentID) {
             'seq': 20,
             'subject': "ข้อมูล รถเข้า-ออก",
             'path_name': "ParkPage",
+            'type': "app",
             'icon': "https://www.silver-api.com/smart-product/icon/behind_menu/carpark.png"
         }
     );
@@ -126,12 +135,16 @@ async function generateBehindMenu(documentID) {
 }
 
 async function generateBehindSubMenu(path) {
+
+    var rsConfig = await db.doc("config/park_car_app").get();
+
     await db.collection(path).doc().set(
         {
             'status': 1,
             'seq': 10,
             'subject': "ตั้งค่าระบบ 'บันทึกจอดรถ'",
-            'path_name': "ParkSettingPage"
+            'path_name': "ParkSettingPage",
+            'type': "app",
         }
     );
     await db.collection(path).doc().set(
@@ -139,7 +152,17 @@ async function generateBehindSubMenu(path) {
             'status': 1,
             'seq': 20,
             'subject': "ต่ออายุการใช้งาน",
-            'path_name': "PaymentAlertPage"
+            'path_name': "PaymentAlertPage",
+            'type': "app",
+        }
+    );
+    await db.collection(path).doc().set(
+        {
+            'status': 1,
+            'seq': 30,
+            'subject': "คู่มือการใช้งานระบบ 'บันทึกจอดรถ'",
+            'path_name': rsConfig.data()["guide_url"],
+            'type': "app_image",
         }
     );
 }
