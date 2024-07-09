@@ -96,7 +96,7 @@ async function generateParkCarAppMenu(documentID) {
             'seq': 60,
             'subject': "คู่มือการใช้งาน",
             'path_name': "DetailWithImagePage",
-            'type': "app"
+            'type': "guide"
         }
     );
 }
