@@ -240,6 +240,36 @@ exports.onCreateTransaction = functions.firestore.document('project_list/{projec
         }
     });
 
+/* exports.onUpdateTransaction = functions.firestore.document('project_list/{project_id}/transaction_list/{transaction_id}')
+    .onWrite(async (snap, context) => {
+
+        const before = snap.before.data();
+        const after = snap.after.data();
+        const project_id = context.params.project_id;
+        const transaction_id = context.params.transaction_id;
+
+        if (isEmpty(before)) {
+            return;
+        }
+
+        if (isEmpty(after)) {
+            return;
+        }
+
+        // เมื่อมีการ stamp
+        if (isEmpty(before.stamp) && !isEmpty(after.stamp)) {
+            console.log("isStamp");
+            const isHaveNotification = await checkIsHaveNotificationList("project_list/" + project_id + "/transaction_list/" + transaction_id, project_id);
+            console.log("isHaveNotification : " + isHaveNotification);
+        }
+
+    });
+
+async function checkIsHaveNotificationList(doc_path, project_id) {
+    const data = await db.collection("project_list/" + project_id + "/notification_list").where("doc_path", "==", doc_path).get();
+    return !data.empty;
+} */
+
 async function getResidentUserRef(contact_address, project_id) {
     const rs = await db.collection("project_list/" + project_id + "/resident_list").where("contact_address", '==', contact_address).get();
     if (rs.empty) {
