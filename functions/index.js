@@ -25,6 +25,40 @@ exports.helloWorld = functions.region(REGION).https
         response.json({ status: true, data: provinces });
     });
 
+exports.insertMenu = functions.region(REGION).https
+    .onRequest(async (request, response) => {
+
+        if (request.method !== 'POST') {
+            return response.status(405).json({ error: 'Method Not Allowed' });
+        }
+
+        const path = request.body.path;
+        const subject = request.body.subject;
+        const path_name = request.body.path_name;
+        const type = request.body.type;
+        const seq = request.body.seq ?? 999;
+        const icon = request.body.icon;
+
+        if (isEmpty(path) || isEmpty(subject) || isEmpty(path_name) || isEmpty(type)) {
+            response.json({ status: false, msg: "req field", data: [] });
+        }
+
+        console.log(path);
+
+        await db.collection(path).doc().set(
+            {
+                'status': 1,
+                'seq': seq,
+                'subject': subject,
+                'path_name': path_name,
+                'icon': isEmpty(icon) ? null : icon,
+                'type': type
+            }
+        );
+
+        response.json({ status: true, data: [] });
+    });
+
 exports.onCreateProject = functions.firestore.document('project_list/{doc_id}')
     .onCreate(async (snap, context) => {
 
@@ -34,6 +68,7 @@ exports.onCreateProject = functions.firestore.document('project_list/{doc_id}')
         await generateParkCarAppMenu(documentID);
         await generateBehindMenu(documentID);
         await generateResidentService(documentID);
+        await generatePhoneProjectList(documentID, original);
 
 
         console.log('createProvince done');
@@ -131,12 +166,84 @@ async function generateBehindMenu(documentID) {
             'type': "app"
         }
     );
-    generateBehindSubMenu('project_list/' + documentID + '/behind_menu_list/' + parkMenuRef.id + "/sub_menu_list");
+    await generateBehindSubMenu('project_list/' + documentID + '/behind_menu_list/' + parkMenuRef.id + "/sub_menu_list", "park");
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 30,
+            'subject': "จัดการลูกบ้าน",
+            'path_name': "ResidentPage",
+            'type': "app"
+        }
+    );
+
+    const waterPaymentMenuRef = db.collection('project_list/' + documentID + '/behind_menu_list').doc();
+    await waterPaymentMenuRef.set(
+        {
+            'status': 0,
+            'seq': 40,
+            'subject': "รายการแจ้งชำระค่าน้ำ",
+            'path_name': "WaterPaymentPage",
+            'type': "app"
+        }
+    );
+    await generateBehindSubMenu('project_list/' + documentID + '/behind_menu_list/' + waterPaymentMenuRef.id + "/sub_menu_list", "water_payment");
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 50,
+            'subject': "จัดการพัสดุ",
+            'path_name': "StockPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 60,
+            'subject': "ประกาศข่าวสาร",
+            'path_name': "NewsPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 70,
+            'subject': "รายการแจ้งปัญหา",
+            'path_name': "IssueProjectPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 80,
+            'subject': "ประชาสัมพันธ์",
+            'path_name': "BannerProjectPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 0,
+            'seq': 90,
+            'subject': "เบอร์โทรศัพท์ฉุกเฉิน",
+            'path_name': "PhoneProjectPage",
+            'type': "app"
+        }
+    );
 
     await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
         {
             'status': 1,
-            'seq': 30,
+            'seq': 100,
             'subject': "ต่ออายุการใช้งาน",
             'path_name': "PaymentAlertPage",
             'type': "app"
@@ -144,28 +251,41 @@ async function generateBehindMenu(documentID) {
     );
 }
 
-async function generateBehindSubMenu(path) {
+async function generateBehindSubMenu(path, type) {
 
     var rsConfig = await db.doc("config/park_car_app").get();
 
-    await db.collection(path).doc().set(
-        {
-            'status': 1,
-            'seq': 10,
-            'subject': "ตั้งค่าระบบ 'บันทึกจอดรถ'",
-            'path_name': "ParkSettingPage",
-            'type': "app",
-        }
-    );
-    await db.collection(path).doc().set(
-        {
-            'status': 1,
-            'seq': 30,
-            'subject': "คู่มือการใช้งานระบบ 'บันทึกจอดรถ'",
-            'path_name': rsConfig.data()["guide_image_path"],
-            'type': "app_image",
-        }
-    );
+    if (type == "park") {
+        await db.collection(path).doc().set(
+            {
+                'status': 1,
+                'seq': 10,
+                'subject': "ตั้งค่าระบบ 'บันทึกจอดรถ'",
+                'path_name': "ParkSettingPage",
+                'type': "app",
+            }
+        );
+        await db.collection(path).doc().set(
+            {
+                'status': 1,
+                'seq': 20,
+                'subject': "คู่มือการใช้งานระบบ 'บันทึกจอดรถ'",
+                'path_name': rsConfig.data()["guide_image_path"],
+                'type': "app_image",
+            }
+        );
+    } else if (type == "water_payment") {
+        await db.collection(path).doc().set(
+            {
+                'status': 1,
+                'seq': 10,
+                'subject': "ตั้งค่าบริการ 'แจ้งชำระค่าน้ำ'",
+                'path_name': "WaterPaymentSettingPage",
+                'type': "app",
+            }
+        );
+    }
+
 }
 
 async function generateResidentService(documentID) {
@@ -175,39 +295,111 @@ async function generateResidentService(documentID) {
     // type app_image เปิดในแอปหน้า DetailWithImagePage "path_name" คือ url รูป
     // type url เปิดลิงก์นอก
 
-    await db.collection('project_list/' + documentID + '/resident_menu_list').doc().set(
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
         {
             'status': 0,
             'seq': 10,
-            'subject': "ประทับตรา",
-            'path_name': "StampPage",
-            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/default_icon.png",
+            'subject': "รายการผู้เข้าพบ",
+            'path_name': "TransactionPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/park.png",
             'type': "app"
         }
     );
 
-    await db.collection('project_list/' + documentID + '/resident_menu_list').doc().set(
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
         {
             'status': 0,
             'seq': 20,
-            'subject': "แจ้งปัญหา",
-            'path_name': "ComplainPage",
-            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/default_icon.png",
+            'subject': "แจ้งปัญหาโครงการ",
+            'path_name': "IssueProjectPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/issue.png",
             'type': "app"
         }
     );
 
-    await db.collection('project_list/' + documentID + '/resident_menu_list').doc().set(
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
         {
             'status': 0,
             'seq': 30,
-            'subject': "ข่าวสาร/กิจกรรม",
-            'path_name': "NewsListPage",
-            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/default_icon.png",
+            'subject': "รายการพัสดุ",
+            'path_name': "StockPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/stock.png",
             'type': "app"
         }
     );
 
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
+        {
+            'status': 0,
+            'seq': 40,
+            'subject': "แจ้งข่าวสาร",
+            'path_name': "NewsPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/news.png",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
+        {
+            'status': 0,
+            'seq': 50,
+            'subject': "แจ้งชำระค่าน้ำ",
+            'path_name': "WaterPaymentPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/water.png",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
+        {
+            'status': 0,
+            'seq': 60,
+            'subject': "เบอร์โทรฉุกเฉิน",
+            'path_name': "PhoneProjectPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/phone.png",
+            'type': "app"
+        }
+    );
+
+}
+
+async function generatePhoneProjectList(documentID, original) {
+    await db.collection('project_list/' + documentID + '/phone_project_list').doc().set(
+        {
+            'status': 1,
+            'subject': 'ตำรวจ',
+            'phone': '191',
+            'create_date': new Date(),
+            'create_by': original.create_by,
+        }
+    );
+    await db.collection('project_list/' + documentID + '/phone_project_list').doc().set(
+        {
+            'status': 1,
+            'subject': 'ไฟไหม้ดับเพลิง',
+            'phone': '1992',
+            'create_date': new Date(),
+            'create_by': original.create_by,
+        }
+    );
+    await db.collection('project_list/' + documentID + '/phone_project_list').doc().set(
+        {
+            'status': 1,
+            'subject': 'กู้ภัย',
+            'phone': '1669',
+            'create_date': new Date(),
+            'create_by': original.create_by,
+        }
+    );
+    await db.collection('project_list/' + documentID + '/phone_project_list').doc().set(
+        {
+            'status': 1,
+            'subject': 'หน่วยแพทย์กู้ชีวิต',
+            'phone': '1554',
+            'create_date': new Date(),
+            'create_by': original.create_by,
+        }
+    );
 }
 
 exports.onCreateTransaction = functions.firestore.document('project_list/{project_id}/transaction_list/{transaction_id}')
@@ -227,48 +419,21 @@ exports.onCreateTransaction = functions.firestore.document('project_list/{projec
         const users_list = await getResidentUserRef(contact_address, project_id);
 
         for (let i = 0; i < users_list.length; i++) {
+            let car_type = isEmpty(original.car_type) ? "" : original.car_type;
+            let car_registration = isEmpty(original.car_registration) ? "" : original.car_registration;
+            let objective = isEmpty(original.objective) ? "" : original.objective;
             const data = {
                 "create_date": new Date(),
-                "subject": "มีรถ" + original.car_type + " ทะเบียน " + original.car_registration + " กำลังเข้าไปหาท่าน เพื่อ" + original.objective,
+                "subject": "มีรถ" + car_type + " ทะเบียน " + car_registration + " กำลังเข้าไปหาท่าน เพื่อ" + objective,
                 "detail": "กรุณาประทับตรารายการเมื่อต้องการจะออกจากโครงการ",
-                "receiver": users_list[i][0],
-                "resident_ref": users_list[i][1],
+                "receiver_list": [users_list[i][0]],
+                "resident_ref_list": [users_list[i][1]],
                 "type": "park",
                 "doc_path": doc_path,
             };
             db.collection("project_list/" + project_id + "/notification_list").add(data);
         }
     });
-
-/* exports.onUpdateTransaction = functions.firestore.document('project_list/{project_id}/transaction_list/{transaction_id}')
-    .onWrite(async (snap, context) => {
-
-        const before = snap.before.data();
-        const after = snap.after.data();
-        const project_id = context.params.project_id;
-        const transaction_id = context.params.transaction_id;
-
-        if (isEmpty(before)) {
-            return;
-        }
-
-        if (isEmpty(after)) {
-            return;
-        }
-
-        // เมื่อมีการ stamp
-        if (isEmpty(before.stamp) && !isEmpty(after.stamp)) {
-            console.log("isStamp");
-            const isHaveNotification = await checkIsHaveNotificationList("project_list/" + project_id + "/transaction_list/" + transaction_id, project_id);
-            console.log("isHaveNotification : " + isHaveNotification);
-        }
-
-    });
-
-async function checkIsHaveNotificationList(doc_path, project_id) {
-    const data = await db.collection("project_list/" + project_id + "/notification_list").where("doc_path", "==", doc_path).get();
-    return !data.empty;
-} */
 
 async function getResidentUserRef(contact_address, project_id) {
     const rs = await db.collection("project_list/" + project_id + "/resident_list").where("contact_address", '==', contact_address).get();
@@ -293,50 +458,104 @@ exports.onCreateNotification = functions.firestore.document('project_list/{proje
     .onCreate(async (snap, context) => {
         const original = snap.data();
         const project_id = context.params.project_id;
-        const transaction_id = context.params.transaction_id;
+        const notification_id = context.params.notification_id;
 
-        const token = await getTokenByUserRef(original.receiver);
-
-        if (isEmpty(token)) {
-            return;
+        if (isEmpty(original.receiver_topic)) {
+            notiToToken(original);
+        } else {
+            notiToTopic(original, project_id);
         }
 
-        const payload = {
-            notification: {
-                title: original.subject,
-                body: original.detail,
-            },
-            data: {
-                click_action: "FLUTTER_NOTIFICATION_CLICK",
-                id: "high_importance_channel",
-                status: "done",
-                sound: "default",
-                title: original.subject,
-                body: "",
-                type: original.type
-            },
-            apns: {
-                payload: {
-                    aps: {
-                        sound: 'default',
-                        contentAvailable: true,
-                    },
-                },
-                headers: {
-                    'apns-priority': '10',
-                },
-            },
-            android: {
-                priority: 'high',
-            },
-            token: token,
-        };
-        admin
-            .messaging()
-            .send(payload);
-
-        updateTotalNotification(original.receiver);
     });
+
+async function notiToTopic(original, project_id) {
+
+    const condition = `'${project_id}' in topics`;
+
+    const payload = {
+        notification: {
+            title: original.subject,
+            body: original.detail,
+        },
+        data: {
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+            id: "high_importance_channel",
+            status: "done",
+            sound: "default",
+            title: original.subject,
+            body: "",
+            type: original.type
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: 'default',
+                    contentAvailable: true,
+                },
+            },
+            headers: {
+                'apns-priority': '10',
+            },
+        },
+        android: {
+            priority: 'high',
+        },
+        condition: condition,
+    };
+    admin
+        .messaging()
+        .send(payload);
+
+    for (let i = 0; i < original.receiver_list.length; i++) {
+        updateTotalNotification(original.receiver_list[i]);
+    }
+
+}
+
+async function notiToToken(original) {
+
+    const token = await getTokenByUserRef(original.receiver_list[0]);
+
+    if (isEmpty(token)) {
+        return;
+    }
+
+    const payload = {
+        notification: {
+            title: original.subject,
+            body: original.detail,
+        },
+        data: {
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+            id: "high_importance_channel",
+            status: "done",
+            sound: "default",
+            title: original.subject,
+            body: "",
+            type: original.type
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: 'default',
+                    contentAvailable: true,
+                },
+            },
+            headers: {
+                'apns-priority': '10',
+            },
+        },
+        android: {
+            priority: 'high',
+        },
+        token: token,
+    };
+    admin
+        .messaging()
+        .send(payload);
+
+    updateTotalNotification(original.receiver_list[0]);
+}
 
 async function updateTotalNotification(user_ref) {
 
@@ -365,40 +584,6 @@ async function getTokenByUserRef(receiver) {
     return rs.data()["firebase_token"];
 }
 
-exports.insertMenu = functions.region(REGION).https
-    .onRequest(async (request, response) => {
-
-        if (request.method !== 'POST') {
-            return response.status(405).json({ error: 'Method Not Allowed' });
-        }
-
-        const path = request.body.path;
-        const subject = request.body.subject;
-        const path_name = request.body.path_name;
-        const type = request.body.type;
-        const seq = request.body.seq ?? 999;
-        const icon = request.body.icon;
-
-        if (isEmpty(path) || isEmpty(subject) || isEmpty(path_name) || isEmpty(type)) {
-            response.json({ status: false, msg: "req field", data: [] });
-        }
-
-        console.log(path);
-
-        await db.collection(path).doc().set(
-            {
-                'status': 1,
-                'seq': seq,
-                'subject': subject,
-                'path_name': path_name,
-                'icon': isEmpty(icon) ? null : icon,
-                'type': type
-            }
-        );
-
-        response.json({ status: true, data: [] });
-    });
-
 exports.onCreateResident = functions.firestore.document('project_list/{project_id}/resident_list/{resident_id}')
     .onCreate(async (snap, context) => {
 
@@ -421,4 +606,140 @@ exports.onCreateResident = functions.firestore.document('project_list/{project_i
 async function getUserData(user_ref) {
     var userDoc = await db.doc(user_ref.path).get();
     return userDoc.exists ? userDoc : null;
+}
+
+exports.onCreateNews = functions.firestore.document('project_list/{project_id}/news_list/{news_id}')
+    .onCreate(async (snap, context) => {
+
+        const original = snap.data();
+        const project_id = context.params.project_id;
+        const news_id = context.params.news_id;
+
+        const doc_path = "project_list/" + project_id + "/news_list/" + news_id;
+
+        const data_list = await getResidentRefList(project_id);
+
+        const data = {
+            "create_date": new Date(),
+            "subject": original.subject ?? '',
+            "detail": original.detail ?? '',
+            "receiver_topic": project_id,
+            "receiver_list": data_list["receiver_list"],
+            "resident_ref_list": data_list["resident_ref_list"],
+            "type": "news",
+            "doc_path": doc_path,
+        };
+        db.collection("project_list/" + project_id + "/notification_list").add(data);
+
+    });
+
+async function getResidentRefList(project_id) {
+    const rs = await db.collection("project_list/" + project_id + "/resident_list").where("status", '==', 1).get();
+    let resident_ref_list = [];
+    let receiver_list = [];
+
+    if (rs.empty) {
+        return {
+            "receiver_list": receiver_list,
+            "resident_ref_list": resident_ref_list
+        };
+    }
+
+    for (let i = 0; i < rs.size; i++) {
+        receiver_list.push(rs.docs[i].data()["create_by"]);
+        resident_ref_list.push(rs.docs[i].ref);
+    }
+
+    return {
+        "receiver_list": receiver_list,
+        "resident_ref_list": resident_ref_list
+    };
+}
+
+exports.onUpdateUsers = functions.firestore.document('users/{user_id}')
+    .onWrite(async (snap, context) => {
+
+        const after = snap.after.data();
+        const before = snap.before.data();
+        const user_id = context.params.user_id;
+
+        if (isEmpty(before)) {
+            console.log("this is create");
+            return;
+        }
+
+        if (isEmpty(after)) {
+            console.log("this is delete");
+            return;
+        }
+
+        // if update first_name or last_name
+        if (after.first_name != before.first_name || after.last_name != before.last_name) {
+            console.log("this is update first_name, last_name");
+            updateResidentName(snap.after);
+        }
+
+
+    });
+
+async function updateResidentName(user) {
+    try {
+        const querySnapshot = await db.collectionGroup('resident_list')
+            .where('create_by', '==', user.ref)
+            .get();
+        querySnapshot.forEach(doc => {
+            const resident_name = user.data().first_name + " " + user.data().last_name;
+            console.log("resident_name : " + resident_name);
+            console.log("doc.ref.path : " + doc.ref.path);
+            db.doc(doc.ref.path).update({
+                resident_name: resident_name,
+            });
+        });
+    } catch (error) {
+        console.error('Error querying residents:', error);
+    }
+
+}
+
+exports.onCreateStock = functions.firestore.document('project_list/{project_id}/stock_list/{stock_id}')
+    .onCreate(async (snap, context) => {
+
+        const original = snap.data();
+        const project_id = context.params.project_id;
+        const stock_id = context.params.stock_id;
+
+        if (isEmpty(original.resident_ref_list)) {
+            return;
+        }
+
+        if (original.resident_ref_list.length == 0) {
+            return;
+        }
+
+        const doc_path = "project_list/" + project_id + "/stock_list/" + stock_id;
+
+        for (let i = 0; i < original.resident_ref_list.length; i++) {
+            const userRef = await getUserByResidentRef(original.resident_ref_list[i].path);
+            if (isEmpty(userRef)) {
+                continue;
+            }
+            const data = {
+                "create_date": new Date(),
+                "subject": 'มีรายการพัสดุเข้ามา',
+                "detail": 'กรุณาตรวจสอบและรับพัสดุของท่าน',
+                "receiver_list": [userRef],
+                "resident_ref_list": [original.resident_ref_list[i]],
+                "type": "stock",
+                "doc_path": doc_path,
+            };
+            db.collection("project_list/" + project_id + "/notification_list").add(data);
+        }
+
+    });
+
+async function getUserByResidentRef(path) {
+    console.log("getUserByResidentRef");
+    console.log(path);
+    const residentData = await db.doc(path).get();
+    return isEmpty(residentData) ? null : residentData.data().create_by;
 }
