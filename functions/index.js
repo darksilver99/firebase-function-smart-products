@@ -156,6 +156,16 @@ async function generateBehindMenu(documentID) {
         }
     );
 
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 15,
+            'subject': "QR Code สำหรับเข้าร่วมโครงการ",
+            'path_name': "QRCodeProjectPage",
+            'type': "app"
+        }
+    );
+
     const parkMenuRef = db.collection('project_list/' + documentID + '/behind_menu_list').doc();
     await parkMenuRef.set(
         {
@@ -461,15 +471,16 @@ exports.onCreateNotification = functions.firestore.document('project_list/{proje
         const notification_id = context.params.notification_id;
 
         if (isEmpty(original.receiver_topic)) {
-            notiToToken(original);
+            console.log("notiToToken : " + notification_id);
+            await notiToToken(original);
         } else {
-            notiToTopic(original, project_id);
+            console.log("notiToTopic : " + notification_id);
+            await notiToTopic(original, project_id);
         }
 
     });
 
 async function notiToTopic(original, project_id) {
-
     const condition = `'${project_id}' in topics`;
 
     const payload = {
@@ -507,13 +518,12 @@ async function notiToTopic(original, project_id) {
         .send(payload);
 
     for (let i = 0; i < original.receiver_list.length; i++) {
-        updateTotalNotification(original.receiver_list[i]);
+        await updateTotalNotification(original.receiver_list[i]);
     }
 
 }
 
 async function notiToToken(original) {
-
     const token = await getTokenByUserRef(original.receiver_list[0]);
 
     if (isEmpty(token)) {
@@ -554,7 +564,7 @@ async function notiToToken(original) {
         .messaging()
         .send(payload);
 
-    updateTotalNotification(original.receiver_list[0]);
+    await updateTotalNotification(original.receiver_list[0]);
 }
 
 async function updateTotalNotification(user_ref) {
@@ -676,7 +686,7 @@ exports.onUpdateUsers = functions.firestore.document('users/{user_id}')
         // if update first_name or last_name
         if (after.first_name != before.first_name || after.last_name != before.last_name) {
             console.log("this is update first_name, last_name");
-            updateResidentName(snap.after);
+            await updateResidentName(snap.after);
         }
 
 
