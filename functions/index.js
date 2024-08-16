@@ -753,3 +753,42 @@ async function getUserByResidentRef(path) {
     const residentData = await db.doc(path).get();
     return isEmpty(residentData) ? null : residentData.data().create_by;
 }
+
+async function getProjectData(project_id) {
+    const data = await db.doc("project_list/" + project_id).get();
+    return isEmpty(data) ? null : residentData.data();
+}
+
+exports.onCreateHelpList = functions.firestore.document('project_list/{project_id}/help_list/{doc_id}')
+    .onCreate(async (snap, context) => {
+
+        const original = snap.data();
+        const project_id = context.params.project_id;
+        const doc_id = context.params.doc_id;
+
+        const doc_path = "project_list/" + project_id + "/help_list/" + doc_id;
+
+
+        const projectData = await getProjectData(project_id);
+
+        let detail = '';
+        if (!isEmpty(original.subject)) {
+            detail = original.subject;
+        }
+        if (!isEmpty(original.detail)) {
+            detail = detail + " " + original.detail;
+        }
+        
+        const data = {
+            "create_date": new Date(),
+            "subject": "มีแจ้งขอความช่วยเหลือจากลูกบ้าน",
+            "detail": detail,
+            "receiver_list": [projectData.create_by],
+            "resident_ref_list": [],
+            "type": "for_guard",
+            "doc_path": doc_path,
+        };
+        
+        db.collection("project_list/" + project_id + "/notification_list").add(data);
+
+    });
