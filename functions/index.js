@@ -529,7 +529,7 @@ async function notiToToken(original) {
     if (isEmpty(token)) {
         return;
     }
-
+    console.log(token);
     const payload = {
         notification: {
             title: original.subject,
@@ -544,7 +544,7 @@ async function notiToToken(original) {
             body: "",
             type: original.type
         },
-        apns: {
+        /* apns: {
             payload: {
                 aps: {
                     sound: 'default',
@@ -558,13 +558,15 @@ async function notiToToken(original) {
         android: {
             priority: 'high',
         },
-        token: token,
+        token: token, */
     };
+
     admin
         .messaging()
-        .send(payload);
+        .sendToDevice(token, payload);
 
     await updateTotalNotification(original.receiver_list[0]);
+
 }
 
 async function updateTotalNotification(user_ref) {
@@ -755,8 +757,8 @@ async function getUserByResidentRef(path) {
 }
 
 async function getProjectData(project_id) {
-    const data = await db.doc("project_list/" + project_id).get();
-    return isEmpty(data) ? null : residentData.data();
+    const projectData = await db.doc("project_list/" + project_id).get();
+    return isEmpty(projectData) ? null : projectData.data();
 }
 
 exports.onCreateHelpList = functions.firestore.document('project_list/{project_id}/help_list/{doc_id}')
@@ -778,7 +780,7 @@ exports.onCreateHelpList = functions.firestore.document('project_list/{project_i
         if (!isEmpty(original.detail)) {
             detail = detail + " " + original.detail;
         }
-        
+
         const data = {
             "create_date": new Date(),
             "subject": "มีแจ้งขอความช่วยเหลือจากลูกบ้าน",
@@ -788,7 +790,7 @@ exports.onCreateHelpList = functions.firestore.document('project_list/{project_i
             "type": "for_guard",
             "doc_path": doc_path,
         };
-        
+
         db.collection("project_list/" + project_id + "/notification_list").add(data);
 
     });
