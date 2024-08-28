@@ -117,6 +117,16 @@ async function generateParkCarAppMenu(documentID) {
     await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
         {
             'status': 1,
+            'seq': 35,
+            'subject': "รายการขอความช่วยเหลือ",
+            'path_name': "HelpPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/park_car_menu_list').doc().set(
+        {
+            'status': 1,
             'seq': 40,
             'subject': "แจ้งปัญหาการใช้งาน",
             'path_name': "IssuePage",
@@ -252,8 +262,18 @@ async function generateBehindMenu(documentID) {
 
     await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
         {
-            'status': 1,
+            'status': 0,
             'seq': 100,
+            'subject': "รายการขอความช่วยเหลือ",
+            'path_name': "HelpPage",
+            'type': "app"
+        }
+    );
+
+    await db.collection('project_list/' + documentID + '/behind_menu_list').doc().set(
+        {
+            'status': 1,
+            'seq': 1000,
             'subject': "ต่ออายุการใช้งาน",
             'path_name': "PaymentAlertPage",
             'type': "app"
