@@ -391,6 +391,17 @@ async function generateResidentService(documentID) {
         }
     );
 
+    await db.collection('project_list/' + documentID + '/resident_service_list').doc().set(
+        {
+            'status': 0,
+            'seq': 70,
+            'subject': "ขอความช่วยเหลือจาก รปภ.",
+            'path_name': "HelpPage",
+            'icon': "https://www.silver-api.com/smart-product/resident_app/icon/help.png",
+            'type': "app"
+        }
+    );
+
 }
 
 async function generatePhoneProjectList(documentID, original) {
