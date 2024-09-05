@@ -565,42 +565,53 @@ async function notiToToken(original) {
         return;
     }
     console.log(token);
-    const payload = {
-        notification: {
-            title: original.subject,
-            body: original.detail,
-        },
-        data: {
-            click_action: "FLUTTER_NOTIFICATION_CLICK",
-            id: "high_importance_channel",
-            status: "done",
-            sound: "default",
-            title: original.subject,
-            body: "",
-            type: original.type
-        },
-        /* apns: {
-            payload: {
-                aps: {
-                    sound: 'default',
-                    contentAvailable: true,
+    for (var i = 0; i < token.length; i++) {
+
+        const payload = {
+            notification: {
+                title: original.subject,
+                body: original.detail,
+            },
+            data: {
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                id: "high_importance_channel",
+                status: "done",
+                sound: "default",
+                title: original.subject,
+                body: "",
+                type: original.type
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        sound: 'default',
+                        contentAvailable: true,
+                    },
+                },
+                headers: {
+                    'apns-priority': '10',
                 },
             },
-            headers: {
-                'apns-priority': '10',
+            android: {
+                priority: 'high',
             },
-        },
-        android: {
-            priority: 'high',
-        },
-        token: token, */
-    };
+            token: token[i],
+        };
 
-    admin
+        admin
+            .messaging()
+            .send(payload);
+
+        await updateTotalNotification(original.receiver_list[0]);
+    }
+
+
+    // ช้า
+    /* admin
         .messaging()
-        .sendToDevice(token, payload);
+        .sendToDevice(token, payload); */
 
-    await updateTotalNotification(original.receiver_list[0]);
+
 
 }
 
@@ -728,11 +739,13 @@ exports.onUpdateUsers = functions.firestore.document('users/{user_id}')
 
 
         if (isEmpty(before.phone_number)) {
-            let message = "มีการสมัครสมาชิกใหม่จากคุณ ";
-            message = message + after.first_name + " " + after.last_name;
-            message = message + "\n" + "เบอร์โทร : " + after.phone_number;
-            message = message + "\n" + "อีเมล : " + after.email;
-            sendLineNotify(message, line_token);
+            if (after.type != "resident") {
+                let message = "มีการสมัครสมาชิกใหม่จากคุณ ";
+                message = message + after.display_name;
+                message = message + "\n" + "เบอร์โทร : " + after.phone_number;
+                message = message + "\n" + "อีเมล : " + after.email;
+                sendLineNotify(message, line_token);
+            }
         }
 
     });
