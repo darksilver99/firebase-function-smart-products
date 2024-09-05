@@ -1,12 +1,16 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const request = require('request');
+const axios = require('axios');
+const formData = require("form-data");
 
 const REGION = "asia-east1";
 
 admin.initializeApp();
 const db = admin.firestore();
 const storage = admin.storage();
+
+const line_token = "eg2ZuCQR1aiBts4VYBrZtlmATpWAQndtNq52tXPpYGx";
 
 function isEmpty(checkValue) {
     if (checkValue === undefined || checkValue === null || checkValue === "" || checkValue + "" === "null") {
@@ -723,6 +727,14 @@ exports.onUpdateUsers = functions.firestore.document('users/{user_id}')
         }
 
 
+        if (isEmpty(before.phone_number)) {
+            let message = "มีการสมัครสมาชิกใหม่จากคุณ ";
+            message = message + after.first_name + " " + after.last_name;
+            message = message + "\n" + "เบอร์โทร : " + after.phone_number;
+            message = message + "\n" + "อีเมล : " + after.email;
+            sendLineNotify(message, line_token);
+        }
+
     });
 
 async function updateResidentName(user) {
@@ -825,3 +837,64 @@ exports.onCreateHelpList = functions.firestore.document('project_list/{project_i
         db.collection("project_list/" + project_id + "/notification_list").add(data);
 
     });
+
+
+exports.onCreateIssueList = functions.firestore.document('issuee_list/{doc_id}')
+    .onCreate(async (snap, context) => {
+
+        const original = snap.data();
+        const doc_id = context.params.doc_id;
+
+        let message = "มีการแจ้งปัญหาการใช้งานจากคุณ ";
+        message = message + original.contact_name;
+        message = message + "\n" + "เบอร์โทร : " + original.contact_phone;
+        message = message + "\n" + "จากแอป : " + original.app_name;
+        message = message + "\n" + "หัวข้อ : " + original.subject;
+        message = message + "\n" + "รายละเอียด : " + original.detail;
+        sendLineNotify(message, line_token);
+
+
+    });
+
+exports.onCreatePaymentList = functions.firestore.document('payment_list/{doc_id}')
+    .onCreate(async (snap, context) => {
+
+        const original = snap.data();
+        const doc_id = context.params.doc_id;
+
+        let message = "มีการแจ้งโอนเงินจาก ";
+        message = message + original.create_project + "(" + original.create_project_ref.id + ")";
+        message = message + "\n" + "รูปหลักฐานการโอนเงิน : ";
+        sendLineNotify(message, line_token, original.image_slip, original.image_slip);
+
+    });
+
+
+
+
+function sendLineNotify(message, token, image1, image2) {
+
+    // image1,2 is url path
+
+    const data = new formData();
+    data.append("message", message);
+
+    if (!isEmpty(image1) && !isEmpty(image2)) {
+        data.append("imageThumbnail", image1);
+        data.append("imageFullsize", image2);
+    }
+
+    const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "https://notify-api.line.me/api/notify",
+        headers: {
+            "content-type": "application/json",
+            "Authorization": "Bearer " + token,
+            ...data.getHeaders(),
+        },
+        data: data,
+    };
+
+    axios.request(config);
+}
